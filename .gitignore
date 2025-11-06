@@ -3,3 +3,4 @@ build_release/
 release/
 release_eddsa/
 pico-keys-sdk/
+pico-keys-sdk
