@@ -24,11 +24,25 @@ cd build_release
 
 PICO_SDK_PATH="${PICO_SDK_PATH:-../../pico-sdk}"
 SECURE_BOOT_PKEY="${SECURE_BOOT_PKEY:-../../ec_private_key.pem}"
+TARGET_BOARDS="waveshare_rp2350_one seeed_xiao_rp2350"
+for board_name in $TARGET_BOARDS
+do
+    rm -rf -- ./*
+    echo "Building for $board_name..."
+    PICO_SDK_PATH="${PICO_SDK_PATH}" cmake .. -DPICO_BOARD=$board_name -DSECURE_BOOT_PKEY=${SECURE_BOOT_PKEY}
+    make -j`nproc`
+    mv pico_fido.uf2 ../release/pico_fido_$board_name-$SUFFIX.uf2
+done
+
+# Build with EDDSA
 
 if [[ $NO_EDDSA -eq 0 ]]; then
-    board_name="$(basename -- "waveshare_rp2350_one" .h)"
-    rm -rf -- ./*
-    PICO_SDK_PATH="${PICO_SDK_PATH}" cmake .. -DPICO_BOARD=$board_name -DSECURE_BOOT_PKEY=${SECURE_BOOT_PKEY} -DENABLE_EDDSA=1
-    make -j`nproc`
-    mv pico_fido.uf2 ../release_eddsa/pico_fido_$board_name-$SUFFIX-eddsa1.uf2
+    for board_name in $TARGET_BOARDS
+    do
+        rm -rf -- ./*
+        echo "Building EDDSA for $board_name..."
+        PICO_SDK_PATH="${PICO_SDK_PATH}" cmake .. -DPICO_BOARD=$board_name -DSECURE_BOOT_PKEY=${SECURE_BOOT_PKEY} -DENABLE_EDDSA=1
+        make -j`nproc`
+        mv pico_fido.uf2 ../release_eddsa/pico_fido_$board_name-$SUFFIX-eddsa1.uf2
+    done
 fi
